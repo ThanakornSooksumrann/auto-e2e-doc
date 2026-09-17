@@ -63,7 +63,11 @@ Examples:
 Use this only when the user wants real UI evidence.
 
 1. **Dynamic Selectors**: You are NOT restricted to specific UI libraries. Look at the actual DOM or the source code you found in the `frontendSourcePath` to write your Cypress commands (e.g. `cy.get('button.primary')` or `cy.contains('Save')`).
-2. **Capture Setup**: Preserve the viewport and state before calling `cy.capture()`.
+2. **Required Custom Commands**: You MUST structure every test case with these commands for the document generator to work:
+   - `cy.tc(id, title, objective)`: Call at the start of every `it()` block.
+   - `cy.step(action, expected)`: Call before interacting with the UI. The action text will appear in the document.
+   - `cy.capture(name)`: Call after the UI is stable to take a screenshot for the current step.
+   - `cy.note(text)`: (Optional) Call to record an actual observation (e.g. "Found 5 items").
 3. **Evidence**: Do not create or modify data unless explicitly authorized. Assert API responses on saves; do not rely purely on UI rendering.
 4. Run the test command with the environment flag if provided:
 

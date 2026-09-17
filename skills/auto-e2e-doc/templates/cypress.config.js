@@ -105,7 +105,11 @@ module.exports = defineConfig({
         fs.renameSync(details.path, target);
         // Normalize successful captures to the requested width without cropping any edge.
         if (!details.testFailure) {
-          execFileSync("/usr/bin/sips", ["--resampleWidth", "1440", target], { stdio: "ignore" });
+          try {
+            execFileSync("/usr/bin/sips", ["--resampleWidth", "1440", target], { stdio: "ignore" });
+          } catch (e) {
+            console.error("sips warning:", e.message);
+          }
         }
         const rel = path.relative(path.join(config.projectRoot, scr, "output"), target);
         if (details.testFailure) {
