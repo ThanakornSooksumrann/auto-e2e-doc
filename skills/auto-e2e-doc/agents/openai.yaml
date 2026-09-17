@@ -1,0 +1,6 @@
+interface:
+  display_name: "KL SCR Flow"
+  short_description: "Run or document SCR flows in selected formats"
+  default_prompt: "Use $kl-scr-flow to create a flow-only DOCX and CSV for SCR-201."
+policy:
+  allow_implicit_invocation: false

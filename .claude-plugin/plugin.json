@@ -1,0 +1,8 @@
+{
+  "name": "kl-scr-flow",
+  "version": "1.0.0",
+  "description": "Create or run concise SCR flows and export shareable evidence.",
+  "author": {
+    "name": "KL SCR Team"
+  }
+}

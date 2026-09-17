@@ -1,0 +1,15 @@
+{
+  "name": "kl-scr-flow-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runtime dependencies for the standalone KL SCR Flow skill.",
+  "type": "commonjs",
+  "dependencies": {
+    "docx": "^9.0.0",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://redmine.example.com",
+  "projectId": "kl-core",
+  "trackerName": "SCR",
+  "fieldMap": {
+    "scr": "cf_10",
+    "brd": "cf_11",
+    "fr": "cf_12",
+    "actor": "cf_13",
+    "menu": "cf_14"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "auto-e2e-doc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portable SCR flow skill for Codex, Claude Code, and Cursor.",
+  "type": "commonjs",
+  "scripts": {
+    "export": "node skills/auto-e2e-doc/scripts/export-flow.cjs",
+    "import:brd": "node skills/auto-e2e-doc/scripts/import-brd.cjs",
+    "fetch:redmine": "node skills/auto-e2e-doc/scripts/fetch-redmine.cjs",
+    "install:skill": "node skills/auto-e2e-doc/scripts/install-skill.mjs",
+    "validate": "node scripts/validate-package.mjs"
+  },
+  "dependencies": {
+    "docx": "^9.0.0",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
