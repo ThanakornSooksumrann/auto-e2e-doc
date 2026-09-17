@@ -58,29 +58,56 @@ Examples:
 /auto-e2e-doc flow --from-jira PROJ-123 docx
 ```
 
-## Mode: test
+## 🎯 STRICT RULE: WRITING CYPRESS TESTS (Mode: test)
 
-Use this only when the user wants real UI evidence.
+When the user asks you to write a test (e.g., "สร้างเทสหน้า SCR-xxx"), you MUST ALWAYS physically write the code to disk and execute it. **DO NOT JUST OUTPUT CODE BLOCKS IN CHAT.**
 
-1. **Dynamic Selectors**: You are NOT restricted to specific UI libraries. Look at the actual DOM or the source code you found in the `frontendSourcePath` to write your Cypress commands (e.g. `cy.get('button.primary')` or `cy.contains('Save')`).
-2. **Golden Example**: You MUST read `<skill-root>/examples/golden-flow.cy.js` using `view_file` to see exactly how a perfect test is structured before generating your first test.
-3. **Writing Style**:
-   - Keep the test readable as instructions for a person: use Thai user-facing actions such as “กด เพิ่มข้อมูล” and “กด บันทึก” in your `cy.step` text. Do not put selector jargon in the step text.
-   - Use one representative value for a dropdown or lookup (do not test every option if they just need a flow document).
-4. **Required Custom Commands**: You MUST structure every test case with these commands for the document generator to work:
-   - `cy.tc(id, title, objective)`: Call at the start of every `it()` block.
-   - `cy.step(action, expected)`: Call before interacting with the UI. The action text will appear in the document.
-   - `cy.capture(name)`: Call after the UI is stable to take a screenshot for the current step.
-   - `cy.note(text)`: (Optional) Call to record an actual observation (e.g. "Found 5 items").
-5. **Evidence**: Do not create or modify data unless explicitly authorized. Assert API responses on saves; do not rely purely on UI rendering.
-4. **Run the Test**: You MUST use your `run_command` tool to execute the test immediately after writing it. This is what actually forces Cypress to capture the images!
-   - Use: `npx cypress run --spec "SCR-201/**/*.cy.js"`
-   - If an environment is specified: `npx cypress run --env envName=sit --spec "SCR-201/**/*.cy.js"`
+### 1. Project Layout & File Creation
+You MUST create a dedicated folder for the SCR and write the file into it using `write_to_file`:
+```text
+SCR-xxx/
+  SCR-xxx.cy.js            # You MUST write the test here!
+```
 
-5. Export after success:
+### 2. Golden Example & Style
+- You MUST read `<skill-root>/examples/golden-flow.cy.js` using `view_file` to see exactly how a perfect test is structured before generating your first test.
+- Keep the test readable as instructions for a person: use Thai user-facing actions such as “กด เพิ่มข้อมูล” and “กด บันทึก” in your `cy.step` text. Do not put selector jargon in the step text.
+- Use one representative value for a dropdown or lookup (do not test every option if they just need a flow document).
 
+### 3. Required Custom Commands
+You MUST structure every test case with these commands for the document generator to work:
+- `cy.tc(id, title, objective)`: Call at the start of every `it()` block.
+- `cy.step(action, expected)`: Call before interacting with the UI. The action text will appear in the document.
+- `cy.capture(name)`: Call after the UI is stable to take a screenshot for the current step.
+- `cy.note(text)`: (Optional) Call to record an actual observation (e.g. "Found 5 items").
+
+### 4. Capture Invariants (CRITICAL)
+- The test viewport is `1280x720` CSS pixels.
+- Successful screenshots are normalized to `1440x810` pixels by the Cypress hook using `sips`.
+- **IMPORTANT**: Use `cy.screenshot(..., { capture: "viewport", scale: false })` if you call it directly, though `cy.capture(name)` in `commands.js` handles this.
+- Before capture, hide document scrollbars, scroll to the top, and let animations finish.
+- Place visible windows/modals using fixed viewport coordinates so they are centered in the viewport.
+- Restore all temporary styles after each capture.
+
+### 5. Evidence & Data Safety
+- Read login values only from the local, ignored `cypress.env.json`.
+- Do not run `UPDATE`, `INSERT`, or `DELETE` against the database to prepare test data.
+- Do not create or modify data unless explicitly authorized. Assert API responses on saves; do not rely purely on UI rendering.
+
+### 6. RUN THE TEST!
+After creating `SCR-xxx.cy.js`, you MUST use your `run_command` tool to execute it immediately. **THIS IS HOW IMAGES ARE GENERATED!**
 ```bash
-node <skill-root>/scripts/export-flow.cjs --scr SCR-201 --project-root <project-root> --mode test --formats docx,xlsx
+npx cypress run --spec "SCR-xxx/**/*.cy.js"
+```
+If an environment is specified:
+```bash
+npx cypress run --env envName=sit --spec "SCR-xxx/**/*.cy.js"
+```
+
+### 7. Export the Document
+After Cypress succeeds, you MUST export the document:
+```bash
+node <skill-root>/scripts/export-flow.cjs --scr SCR-xxx --project-root <project-root> --mode test --formats docx,xlsx
 ```
 
 ## Mode: flow (No UI Execution)
@@ -124,5 +151,5 @@ JIRA_TOKEN=xxx JIRA_EMAIL=xxx JIRA_URL=xxx node <skill-root>/scripts/export-flow
 
 ## Commands
 
-- **Gemini / Codex**: `$auto-e2e-doc` or `/skills`
+- **Gemini / Codex**: `$auto-e2e-doc` หรือ `/skills`
 - **Claude / Cursor**: `/auto-e2e-doc`
