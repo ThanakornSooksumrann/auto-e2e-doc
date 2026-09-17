@@ -34,12 +34,21 @@ async function main() {
   console.log("เพื่อให้ AI สามารถวิเคราะห์โครงสร้าง DOM/UI ได้แม่นยำขึ้น โปรดระบุโฟลเดอร์หน้าบ้าน (Frontend)");
   let frontendPath = await question("ตำแหน่งโฟลเดอร์ (เช่น ./src, ../frontend/src, ปล่อยว่างถ้าไม่ต้องการ): ");
   
-  // 3. ถามข้อมูล Redmine (ทางเลือก)
-  console.log("\n--- 3. Redmine Integration (Optional) ---");
+  // 3. ถามข้อมูล Redmine/Jira (ทางเลือก)
+  console.log("\n--- 3. Integrations (Optional) ---");
+  console.log("เลือกตั้งค่าระบบที่ใช้เก็บ Issue/BRD (Redmine หรือ Jira)");
   const redmineUrl = await question("Redmine URL (ปล่อยว่างถ้าไม่ใช้): ");
   let redmineToken = "";
   if (redmineUrl) {
     redmineToken = await question("Redmine Personal Access Token: ");
+  }
+
+  const jiraUrl = await question("Jira URL (เช่น https://your-domain.atlassian.net, ปล่อยว่างถ้าไม่ใช้): ");
+  let jiraEmail = "";
+  let jiraToken = "";
+  if (jiraUrl) {
+    jiraEmail = await question("Jira Email (ปล่อยว่างถ้าใช้ Jira Server/Data Center แบบ PAT): ");
+    jiraToken = await question("Jira API Token / Personal Access Token: ");
   }
 
   // สร้างไฟล์ Config ต่างๆ
@@ -50,7 +59,10 @@ async function main() {
   const cypressEnv = {
     userId: userId || "",
     password: password || "",
-    REDMINE_TOKEN: redmineToken || ""
+    REDMINE_TOKEN: redmineToken || "",
+    JIRA_URL: jiraUrl || "",
+    JIRA_EMAIL: jiraEmail || "",
+    JIRA_TOKEN: jiraToken || ""
   };
   fs.writeFileSync(cypressEnvPath, JSON.stringify(cypressEnv, null, 2));
   console.log("✓ สร้าง cypress.env.json");
@@ -71,6 +83,7 @@ async function main() {
   const skillConfig = {
     "frontendSourcePath": frontendPath || "",
     "redmineUrl": redmineUrl || "",
+    "jiraUrl": jiraUrl || "",
     "documentStyle": {
       "language": "th",
       "includeChecklist": false

@@ -57,12 +57,14 @@ function usage() {
     "  node export-flow.cjs --input flow.json --mode flow --formats docx,csv,json --out-dir ./output",
     "  node export-flow.cjs --from-brd BRD.docx --scr SCR-201 --formats docx,csv",
     "  node export-flow.cjs --from-redmine 1234 --formats docx,xlsx",
+    "  node export-flow.cjs --from-jira PROJ-123 --formats docx,xlsx",
     "",
     "ตัวเลือก:",
     "  --scr <SCR-xxx>          อ่าน <project-root>/<SCR>/output/result.json",
     "  --input <file.json>      อ่าน Cypress result.json หรือ flow JSON",
     "  --from-brd <file.docx>   อ่าน BRD แปลงเป็น flow แล้ว export ในคำสั่งเดียว",
     "  --from-redmine <id>      ดึงจาก Redmine issue แล้ว export ในคำสั่งเดียว",
+    "  --from-jira <id>         ดึงจาก Jira issue แล้ว export ในคำสั่งเดียว",
     "  --mode <test|flow>       ระบุชนิดของหลักฐานใน output",
     "  --formats <list>         docx,xlsx,csv,pdf,json (default: docx)",
     "  --out-dir <directory>    โฟลเดอร์ผลลัพธ์",
@@ -86,6 +88,7 @@ function parseCli(argv) {
     formats: ["docx"],
     fromBrd: null,
     fromRedmine: null,
+    fromJira: null,
     input: null,
     mode: null,
     outDir: null,
@@ -96,7 +99,7 @@ function parseCli(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") return { help: true };
-    if (["--input", "--scr", "--mode", "--formats", "--format", "--out-dir", "--project-root", "--from-brd", "--from-redmine"].includes(arg)) {
+    if (["--input", "--scr", "--mode", "--formats", "--format", "--out-dir", "--project-root", "--from-brd", "--from-redmine", "--from-jira"].includes(arg)) {
       const value = argv[index + 1];
       if (!value || value.startsWith("--")) throw cliError(`ต้องระบุค่าหลัง ${arg}`);
       index += 1;
@@ -108,6 +111,7 @@ function parseCli(argv) {
       if (arg === "--project-root") options.projectRoot = value;
       if (arg === "--from-brd") options.fromBrd = value;
       if (arg === "--from-redmine") options.fromRedmine = value;
+      if (arg === "--from-jira") options.fromJira = value;
       continue;
     }
     throw cliError(`ไม่รู้จักตัวเลือก ${arg}`);
@@ -117,8 +121,8 @@ function parseCli(argv) {
     throw cliError("--mode ใช้ได้เฉพาะ test หรือ flow");
   }
 
-  // --from-brd และ --from-redmine เป็น shortcut ที่ไม่ต้องระบุ --input / --scr
-  if (options.fromBrd || options.fromRedmine) {
+  // --from-brd, --from-redmine, และ --from-jira เป็น shortcut ที่ไม่ต้องระบุ --input / --scr
+  if (options.fromBrd || options.fromRedmine || options.fromJira) {
     if (!options.outDir) options.outDir = path.resolve("output");
     else options.outDir = path.resolve(options.outDir);
     options.projectRoot = path.resolve(options.projectRoot);
@@ -126,7 +130,7 @@ function parseCli(argv) {
   }
 
   if (options.input && options.scr) throw cliError("เลือก --input หรือ --scr อย่างใดอย่างหนึ่ง");
-  if (!options.input && !options.scr) throw cliError("ต้องระบุ --input, --scr, --from-brd หรือ --from-redmine");
+  if (!options.input && !options.scr) throw cliError("ต้องระบุ --input, --scr, --from-brd, --from-redmine หรือ --from-jira");
 
   options.projectRoot = path.resolve(options.projectRoot);
   if (options.scr) {
@@ -632,6 +636,28 @@ async function main() {
       out: null
     });
     const tmpInput = path.join(options.outDir, `.redmine-import-${process.pid}.json`);
+    fs.mkdirSync(options.outDir, { recursive: true });
+    fs.writeFileSync(tmpInput, JSON.stringify(flow, null, 2));
+    try {
+      options.input = tmpInput;
+      if (!options.mode) options.mode = "flow";
+      const result = await exportFlow(options);
+      result.outputs.forEach(file => process.stdout.write(`สร้าง ${file}\n`));
+    } finally {
+      if (fs.existsSync(tmpInput)) fs.unlinkSync(tmpInput);
+    }
+    return;
+  }
+
+  // Shortcut: --from-jira -> fetch Jira -> สร้าง flow JSON ชั่วคราว -> export
+  if (options.fromJira) {
+    const { fetchJira } = require("./fetch-jira.cjs");
+    const flow = await fetchJira({
+      issueId: options.fromJira,
+      downloadBrd: false,
+      out: null
+    });
+    const tmpInput = path.join(options.outDir, `.jira-import-${process.pid}.json`);
     fs.mkdirSync(options.outDir, { recursive: true });
     fs.writeFileSync(tmpInput, JSON.stringify(flow, null, 2));
     try {

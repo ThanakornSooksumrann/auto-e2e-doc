@@ -27,14 +27,14 @@ When this happens, you MUST pause your execution and act as a **Setup Helper**:
 
 ## 📄 Document Upload & Source Guidance (Missing BRD/Source)
 
-If the user asks you to "create a test" or "generate a flow" but **does not specify the source** (like an SCR ID, BRD, or Redmine ID), you must guide them:
+If the user asks you to "create a test" or "generate a flow" but **does not specify the source** (like an SCR ID, BRD, Redmine ID, or Jira ID), you must guide them:
 - **BRD Upload**: Tell the user they can upload their Business Requirement Document (BRD) as a `.docx` file directly into the chat or workspace. Once uploaded, you can read it and auto-generate the flow using `--from-brd`.
-- **Redmine**: Remind them that if they have configured a Redmine Token in the setup, they can simply provide the Issue ID (e.g., `#1234`), and you will automatically fetch the BRD from there.
+- **Redmine / Jira**: Remind them that if they have configured a Token in the setup, they can simply provide the Issue ID (e.g., `#1234` or `PROJ-123`), and you will automatically fetch the BRD from there.
 
 Identify these choices from the user's request:
 
 1. **Mode** — `test` (run Cypress and capture UI) or `flow` (generate document from JSON/BRD without running).
-2. **Source** — SCR ID, JSON flow file, BRD file (.docx), or Redmine issue ID.
+2. **Source** — SCR ID, JSON flow file, BRD file (.docx), Redmine issue ID, or Jira issue key.
 3. **Formats** — one or more of `docx`, `xlsx`, `csv`, `pdf`, `json`.
 4. **Environment** (test mode only) — e.g. `dev`, `sit`, `uat`, or omit for default.
 
@@ -47,6 +47,7 @@ Examples:
 /auto-e2e-doc flow SCR-201 docx,csv
 /auto-e2e-doc flow --from-brd BRD.docx SCR-301 docx,csv
 /auto-e2e-doc flow --from-redmine 1234 docx
+/auto-e2e-doc flow --from-jira PROJ-123 docx
 ```
 
 ## Mode: test
@@ -86,9 +87,9 @@ The generated documents are highly customizable:
 - **XLSX**: Editable table.
 - **JSON**: Raw safe data.
 
-## Integration Sources (BRD & Redmine)
+## Integration Sources (BRD, Redmine & Jira)
 
-You can import flows directly from BRD (.docx) files or Redmine issues.
+You can import flows directly from BRD (.docx) files or Issue Trackers.
 
 **From BRD:**
 ```bash
@@ -100,7 +101,12 @@ node <skill-root>/scripts/export-flow.cjs --from-brd BRD.docx --scr SCR-301 --fo
 REDMINE_TOKEN=xxx node <skill-root>/scripts/export-flow.cjs --from-redmine 1234 --formats docx
 ```
 
-*Note: Tokens are typically stored in `cypress.env.json` or `.env` and should never be logged or committed.*
+**From Jira:**
+```bash
+JIRA_TOKEN=xxx JIRA_EMAIL=xxx JIRA_URL=xxx node <skill-root>/scripts/export-flow.cjs --from-jira PROJ-123 --formats docx
+```
+
+*Note: Tokens and URLs are typically configured during setup and stored in `cypress.env.json` or `.env` and should never be logged or committed.*
 
 ## Commands
 
