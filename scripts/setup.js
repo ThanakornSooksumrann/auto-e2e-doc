@@ -52,10 +52,9 @@ async function main() {
   }
 
   // สร้างไฟล์ Config ต่างๆ
-  console.log("\n--- กำลังสร้างไฟล์ Config ---");
+  console.log("\n--- 4. กำลังสร้างไฟล์ Config ---");
   
-  // 1. cypress.env.json (เก็บ credentials)
-  const cypressEnvPath = path.join(projectRoot, "cypress.env.json");
+  const cypressEnvPath = path.join(process.cwd(), "cypress.env.json");
   const cypressEnv = {
     userId: userId || "",
     password: password || "",
@@ -67,19 +66,20 @@ async function main() {
   fs.writeFileSync(cypressEnvPath, JSON.stringify(cypressEnv, null, 2));
   console.log("✓ สร้าง cypress.env.json");
 
-  // 2. environments.json (เก็บ URLs)
-  const envsPath = path.join(projectRoot, "environments.json");
-  const envs = {
-    "dev": {
-      "baseUrl": baseUrl || "",
-      "description": "Local development environment"
-    }
+  const devUrl = baseUrl;
+  const sitUrl = "";
+  const uatUrl = "";
+
+  const environmentsPath = path.join(process.cwd(), "environments.json");
+  const environments = {
+    "dev": devUrl || "http://localhost:3000",
+    "sit": sitUrl || "http://localhost:3000",
+    "uat": uatUrl || "http://localhost:3000"
   };
-  fs.writeFileSync(envsPath, JSON.stringify(envs, null, 2));
+  fs.writeFileSync(environmentsPath, JSON.stringify(environments, null, 2));
   console.log("✓ สร้าง environments.json");
 
-  // 3. .e2e-doc-config.json (เก็บค่าสำหรับ AI Skill)
-  const skillConfigPath = path.join(projectRoot, ".e2e-doc-config.json");
+  const configPath = path.join(process.cwd(), ".e2e-doc-config.json");
   const skillConfig = {
     "frontendSourcePath": frontendPath || "",
     "redmineUrl": redmineUrl || "",
@@ -89,8 +89,26 @@ async function main() {
       "includeChecklist": false
     }
   };
-  fs.writeFileSync(skillConfigPath, JSON.stringify(skillConfig, null, 2));
+  fs.writeFileSync(configPath, JSON.stringify(skillConfig, null, 2));
   console.log("✓ สร้าง .e2e-doc-config.json");
+
+  console.log("\n--- 5. ตั้งค่าโปรเจกต์ (Cypress Baseline) ---");
+  const initCypress = await question("ต้องการคัดลอกไฟล์ Cypress Config พื้นฐานสำหรับการ Capture แบบมาตรฐานหรือไม่? (y/n) [n]: ");
+  if (initCypress.toLowerCase() === 'y') {
+    const templateDir = path.join(__dirname, "..", "skills", "auto-e2e-doc", "templates");
+    if (fs.existsSync(templateDir)) {
+      try {
+        const cp = require("child_process");
+        // คัดลอกโฟลเดอร์ templates ทั้งหมดไปยัง root
+        cp.execSync(`cp -R "${templateDir}/"* "${process.cwd()}/"`, { stdio: 'ignore' });
+        console.log("✓ คัดลอก Cypress Config พื้นฐานเรียบร้อยแล้ว (cypress.config.js, cypress/support/...)");
+      } catch (e) {
+        console.log("⚠️ ไม่สามารถคัดลอก Cypress Config ได้: " + e.message);
+      }
+    } else {
+      console.log("⚠️ ไม่พบโฟลเดอร์ templates ในแพ็กเกจ");
+    }
+  }
 
   // อัปเดต .gitignore
   const gitignorePath = path.join(projectRoot, ".gitignore");

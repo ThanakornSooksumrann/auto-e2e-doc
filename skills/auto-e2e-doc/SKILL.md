@@ -17,6 +17,9 @@ Run `node <skill-root>/scripts/check-update.cjs` in the background (using your r
 - If it outputs `UPDATE_AVAILABLE: x.x.x`, you MUST inform the user at the end of your response that a new version of the skill is available.
 - Recommend them to update by running `git pull` (if they cloned) or downloading the new zip, followed by running `node scripts/setup.js`.
 
+**🏗️ Cypress Base Config**
+Remind the user that `auto-e2e-doc` provides a highly optimized Cypress configuration (1280x720 viewport, normalized capture size, Kendo UI modal handlers, etc.). This can be installed automatically by running `node scripts/setup.js` and answering 'y' to the Cypress Base Config prompt.
+
 1. **Check for configuration**: Read `.e2e-doc-config.json` in the project root if it exists.
 2. **Find Frontend Source Code**: If the config specifies `frontendSourcePath` (e.g. `./src/ui`), you MUST search that directory to find the actual code of the screen you are writing a test for. Use tools like `grep_search` to find button labels or page titles in `.vue`, `.js`, `.ts`, or `.tsx` files. By reading the actual UI code, you can use the exact DOM structure, data-test attributes, or component hierarchies instead of guessing.
 3. **Environment Setup**: Read `environments.json` and `cypress.env.json` to understand the available test URLs and credentials. The user may have used `npm run setup` to prepare these.
