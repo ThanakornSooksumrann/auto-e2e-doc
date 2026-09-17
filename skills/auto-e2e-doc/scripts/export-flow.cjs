@@ -26,7 +26,7 @@ const JSZip = require("jszip");
 
 const FONT = "Sarabun";
 const IMAGE_WIDTH = 680;
-const FORMATS = new Set(["docx", "xlsx", "csv", "pdf", "json"]);
+const FORMATS = new Set(["docx", "xlsx", "csv", "pdf", "json", "html"]);
 
 function text(value) {
   if (value === undefined || value === null) return "";
@@ -53,8 +53,8 @@ function cliError(message) {
 function usage() {
   return [
     "ใช้:",
-    "  node export-flow.cjs --scr SCR-201 --project-root /path/to/project --formats docx,xlsx,csv,pdf,json",
-    "  node export-flow.cjs --input flow.json --mode flow --formats docx,csv,json --out-dir ./output",
+    "  node export-flow.cjs --scr SCR-201 --project-root /path/to/project --formats docx,xlsx,csv,pdf,json,html",
+    "  node export-flow.cjs --input flow.json --mode flow --formats docx,csv,json,html --out-dir ./output",
     "  node export-flow.cjs --from-brd BRD.docx --scr SCR-201 --formats docx,csv",
     "  node export-flow.cjs --from-redmine 1234 --formats docx,xlsx",
     "  node export-flow.cjs --from-jira PROJ-123 --formats docx,xlsx",
@@ -66,7 +66,7 @@ function usage() {
     "  --from-redmine <id>      ดึงจาก Redmine issue แล้ว export ในคำสั่งเดียว",
     "  --from-jira <id>         ดึงจาก Jira issue แล้ว export ในคำสั่งเดียว",
     "  --mode <test|flow>       ระบุชนิดของหลักฐานใน output",
-    "  --formats <list>         docx,xlsx,csv,pdf,json (default: docx)",
+    "  --formats <list>         docx,xlsx,csv,pdf,json,html (default: docx)",
     "  --out-dir <directory>    โฟลเดอร์ผลลัพธ์",
     "  --project-root <path>    project root สำหรับ --scr (default: current directory)"
   ].join("\n");
@@ -326,9 +326,9 @@ function wordParagraph(value, options = {}) {
     alignment: options.alignment || AlignmentType.LEFT,
     keepNext: Boolean(options.keepNext),
     spacing: {
-      before: options.before || 0,
-      after: options.after === undefined ? 110 : options.after,
-      line: options.line || 276
+      before: options.before || 40,
+      after: options.after === undefined ? 140 : options.after,
+      line: options.line || 360
     },
     children: [wordRun(value, options)]
   });
@@ -466,6 +466,7 @@ async function writeXlsx(flow, target) {
   });
 
   let flowNo = 0;
+  let rowIndex = 6;
   flow.cases.forEach(testCase => {
     testCase.steps.forEach(step => {
       flowNo += 1;
@@ -475,7 +476,7 @@ async function writeXlsx(flow, target) {
         testCase.title,
         step.action,
         step.observation,
-        step.screenshot
+        "" // เว้นว่างไว้สำหรับรูปภาพ
       ]);
       row.eachCell(cell => {
         cell.font = { name: FONT, size: 11, color: { argb: "FF000000" } };
@@ -487,7 +488,49 @@ async function writeXlsx(flow, target) {
           right: { style: "thin", color: { argb: "FFDDECEA" } }
         };
       });
-      row.height = 34;
+      
+      let finalRowHeight = 34; // ค่าเริ่มต้น
+
+      // ฝังรูปภาพลงในเซลล์ (ถ้ารูปภาพมีจริง)
+      if (step.screenshotFile && fs.existsSync(step.screenshotFile)) {
+        try {
+          const imgData = fs.readFileSync(step.screenshotFile);
+          const dimensions = pngSize(imgData);
+          if (dimensions) {
+            const ext = step.screenshotFile.split('.').pop().toLowerCase() === 'png' ? 'png' : 'jpeg';
+            const imageId = workbook.addImage({
+              buffer: imgData,
+              extension: ext,
+            });
+            
+            // คำนวณขนาดภาพ (ให้มีความกว้างสุดไม่เกิน 400px ใน Excel)
+            const MAX_IMG_WIDTH = 400;
+            let imgWidth = dimensions.width;
+            let imgHeight = dimensions.height;
+            if (imgWidth > MAX_IMG_WIDTH) {
+              const ratio = MAX_IMG_WIDTH / imgWidth;
+              imgWidth = MAX_IMG_WIDTH;
+              imgHeight = imgHeight * ratio;
+            }
+
+            // คำนวณความสูงแถวให้พอดีกับภาพ (pixel -> points โดยคูณประมาณ 0.75 + ช่องว่างนิดหน่อย)
+            const heightInPoints = Math.round(imgHeight * 0.75) + 20;
+            finalRowHeight = Math.max(34, heightInPoints);
+
+            sheet.addImage(imageId, {
+              tl: { col: 5, row: rowIndex - 1 }, // คอลัมน์ F (0-indexed คือ 5)
+              ext: { width: Math.round(imgWidth), height: Math.round(imgHeight) }
+            });
+          }
+        } catch (e) {
+          row.getCell(6).value = step.screenshot || step.screenshotFile;
+        }
+      } else {
+        row.getCell(6).value = step.screenshot || "";
+      }
+
+      row.height = finalRowHeight;
+      rowIndex += 1;
     });
   });
   sheet.columns = [
@@ -496,7 +539,7 @@ async function writeXlsx(flow, target) {
     { width: 26 },
     { width: 52 },
     { width: 35 },
-    { width: 32 }
+    { width: 65 } // ขยายคอลัมน์รูปให้กว้างขึ้น
   ];
   sheet.autoFilter = { from: "A5", to: `F${Math.max(5, sheet.rowCount)}` };
   await workbook.xlsx.writeFile(target);
@@ -521,6 +564,46 @@ function writeCsv(flow, target) {
 
 function writeJson(flow, target) {
   fs.writeFileSync(target, `${JSON.stringify(publicFlow(flow), null, 2)}\n`, "utf8");
+}
+
+function writeHtml(flow, target) {
+  let html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${flow.id} ${flow.name}</title>
+  <style>
+    body { font-family: '${FONT}', Tahoma, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6; }
+    h1 { text-align: center; color: #007E7A; font-size: 2em; margin-bottom: 5px; }
+    .mode { text-align: center; font-weight: bold; margin-bottom: 40px; color: #555; }
+    .case { margin-top: 40px; padding: 20px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    h2 { color: #008F8A; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+    .step { margin-bottom: 30px; padding: 15px; background: #fdfdfd; border-radius: 8px; border-left: 4px solid #007E7A; }
+    .step-header { font-weight: bold; margin-bottom: 10px; font-size: 1.2em; color: #222; }
+    .observation { color: #555; margin-bottom: 15px; font-style: italic; background: #eef8f8; padding: 10px; border-radius: 4px; display: inline-block; }
+    .img-container { text-align: center; margin-top: 15px; }
+    img { max-width: 100%; height: auto; display: inline-block; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  </style></head><body>
+  <h1>${flow.id} ${flow.name}</h1>
+  <div class="mode">โหมด: ${formatMode(flow.mode)}</div>`;
+
+  let flowNo = 0;
+  flow.cases.forEach((testCase) => {
+    html += `<div class="case"><h2>${testCase.title || testCase.id}</h2>`;
+    testCase.steps.forEach(step => {
+      flowNo += 1;
+      html += `<div class="step"><div class="step-header">${flowNo}. ${step.action}</div>`;
+      if (step.observation) html += `<div class="observation">ผล: ${step.observation}</div>`;
+      if (step.screenshotFile && fs.existsSync(step.screenshotFile)) {
+        try {
+           const base64 = fs.readFileSync(step.screenshotFile, 'base64');
+           html += `<div class="img-container"><img src="data:image/png;base64,${base64}" alt="Screenshot for step ${flowNo}"></div>`;
+        } catch(e){}
+      } else if (step.screenshot) {
+        html += `<div class="img-container"><span style="color:#999">[ภาพ: ${step.screenshot}]</span></div>`;
+      }
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</body></html>`;
+  fs.writeFileSync(target, html, "utf8");
 }
 
 function sofficeEnvironment() {
@@ -589,6 +672,10 @@ async function exportFlow(options) {
     if (wants("json")) {
       writeJson(flow, target("json"));
       outputs.push(target("json"));
+    }
+    if (wants("html")) {
+      writeHtml(flow, target("html"));
+      outputs.push(target("html"));
     }
     if (wants("pdf")) {
       convertPdf(docxSource, target("pdf"));

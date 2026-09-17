@@ -1,0 +1,19 @@
+{
+  "id": "SCR-TEST",
+  "name": "Test Formatting",
+  "mode": "flow",
+  "cases": [
+    {
+      "id": "TC-01",
+      "title": "Test Formatting Case",
+      "steps": [
+        {
+          "no": 1,
+          "action": "คลิกปุ่ม ทดสอบ",
+          "observation": "ไม่มีปัญหา",
+          "screenshot": ""
+        }
+      ]
+    }
+  ]
+}

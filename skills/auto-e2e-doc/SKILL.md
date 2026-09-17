@@ -40,7 +40,7 @@ Identify these choices from the user's request:
 
 1. **Mode** — `test` (run Cypress and capture UI) or `flow` (generate document from JSON/BRD without running).
 2. **Source** — SCR ID, JSON flow file, BRD file (.docx), Redmine issue ID, or Jira issue key.
-3. **Formats** — one or more of `docx`, `xlsx`, `csv`, `pdf`, `json`.
+3. **Formats** — one or more of `docx`, `xlsx`, `csv`, `pdf`, `json`, `html`.
 4. **Environment** (test mode only) — e.g. `dev`, `sit`, `uat`, or omit for default.
 
 If choices are missing, ask compactly. Do not guess whether a live mutation (save, delete, upload) is allowed.
@@ -88,8 +88,9 @@ node <skill-root>/scripts/export-flow.cjs --input flow.json --mode flow --format
 The generated documents are highly customizable:
 - Read the `documentStyle` setting from `.e2e-doc-config.json`.
 - When writing flow JSON manually, adapt the wording to the specified language (Thai/English) and add any requested metadata.
-- **DOCX**: Editable native text, images inline.
-- **XLSX**: Editable table.
+- **DOCX / PDF**: Elegant document with readable steps and inline screenshots.
+- **XLSX**: Editable table with dynamically resized rows so images never overlap text.
+- **HTML**: Beautiful, responsive web view with embedded Base64 images.
 - **JSON**: Raw safe data.
 
 ## Integration Sources (BRD, Redmine & Jira)
