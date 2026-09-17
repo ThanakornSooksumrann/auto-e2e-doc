@@ -12,6 +12,11 @@ Use this skill when the user explicitly asks for `/auto-e2e-doc`, `$auto-e2e-doc
 
 Before generating tests or flows, you MUST understand the project's frontend structure to write accurate selectors and tests:
 
+**🔄 Always Check for Updates First**
+Run `node <skill-root>/scripts/check-update.cjs` in the background (using your run_command tool). 
+- If it outputs `UPDATE_AVAILABLE: x.x.x`, you MUST inform the user at the end of your response that a new version of the skill is available.
+- Recommend them to update by running `git pull` (if they cloned) or downloading the new zip, followed by running `node scripts/setup.js`.
+
 1. **Check for configuration**: Read `.e2e-doc-config.json` in the project root if it exists.
 2. **Find Frontend Source Code**: If the config specifies `frontendSourcePath` (e.g. `./src/ui`), you MUST search that directory to find the actual code of the screen you are writing a test for. Use tools like `grep_search` to find button labels or page titles in `.vue`, `.js`, `.ts`, or `.tsx` files. By reading the actual UI code, you can use the exact DOM structure, data-test attributes, or component hierarchies instead of guessing.
 3. **Environment Setup**: Read `environments.json` and `cypress.env.json` to understand the available test URLs and credentials. The user may have used `npm run setup` to prepare these.
