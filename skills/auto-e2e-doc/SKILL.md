@@ -16,6 +16,15 @@ Before generating tests or flows, you MUST understand the project's frontend str
 2. **Find Frontend Source Code**: If the config specifies `frontendSourcePath` (e.g. `./src/ui`), you MUST search that directory to find the actual code of the screen you are writing a test for. Use tools like `grep_search` to find button labels or page titles in `.vue`, `.js`, `.ts`, or `.tsx` files. By reading the actual UI code, you can use the exact DOM structure, data-test attributes, or component hierarchies instead of guessing.
 3. **Environment Setup**: Read `environments.json` and `cypress.env.json` to understand the available test URLs and credentials. The user may have used `npm run setup` to prepare these.
 
+## 🚨 Setup & Helper Detection (Missing Configuration)
+
+**CRITICAL**: If you check the project root and CANNOT find `cypress.env.json`, `environments.json`, or `.e2e-doc-config.json`, it means the user **skipped the setup step**. 
+When this happens, you MUST pause your execution and act as a **Setup Helper**:
+- Politely inform the user that they need to initialize the project first.
+- Instruct them to run `node scripts/setup.js` (or `npm run setup` if configured) in their terminal to use the interactive wizard.
+- Alternatively, offer to manually help them create the files right there in the chat by asking them for their Base URL, Credentials, and Frontend source code path.
+- **DO NOT** attempt to guess credentials or run Cypress tests if these files are missing, as it will result in errors.
+
 Identify these choices from the user's request:
 
 1. **Mode** — `test` (run Cypress and capture UI) or `flow` (generate document from JSON/BRD without running).
