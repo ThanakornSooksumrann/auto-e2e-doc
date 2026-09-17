@@ -25,6 +25,12 @@ When this happens, you MUST pause your execution and act as a **Setup Helper**:
 - Alternatively, offer to manually help them create the files right there in the chat by asking them for their Base URL, Credentials, and Frontend source code path.
 - **DO NOT** attempt to guess credentials or run Cypress tests if these files are missing, as it will result in errors.
 
+## 📄 Document Upload & Source Guidance (Missing BRD/Source)
+
+If the user asks you to "create a test" or "generate a flow" but **does not specify the source** (like an SCR ID, BRD, or Redmine ID), you must guide them:
+- **BRD Upload**: Tell the user they can upload their Business Requirement Document (BRD) as a `.docx` file directly into the chat or workspace. Once uploaded, you can read it and auto-generate the flow using `--from-brd`.
+- **Redmine**: Remind them that if they have configured a Redmine Token in the setup, they can simply provide the Issue ID (e.g., `#1234`), and you will automatically fetch the BRD from there.
+
 Identify these choices from the user's request:
 
 1. **Mode** — `test` (run Cypress and capture UI) or `flow` (generate document from JSON/BRD without running).
