@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 Use this skill when the user explicitly asks for `/auto-e2e-doc`, `$auto-e2e-doc`, or wants to generate automated UI testing flow evidence and documentation. This skill produces human-readable documentation without relying on hardcoded frameworks like Kendo UI, making it adaptable to any system.
 
+**🚨 MANDATORY FRAMEWORK**: You MUST exclusively use **Cypress** for all E2E testing and flow execution. Do not use Playwright, Puppeteer, Selenium, or any other framework under any circumstances. If the user asks for a test or a flow, you MUST write and execute it using Cypress.
+
 ## First: Initialization and Project Context
 
 Before generating tests or flows, you MUST understand the project's frontend structure to write accurate selectors and tests:
