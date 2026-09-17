@@ -69,12 +69,9 @@ Use this only when the user wants real UI evidence.
    - `cy.capture(name)`: Call after the UI is stable to take a screenshot for the current step.
    - `cy.note(text)`: (Optional) Call to record an actual observation (e.g. "Found 5 items").
 3. **Evidence**: Do not create or modify data unless explicitly authorized. Assert API responses on saves; do not rely purely on UI rendering.
-4. Run the test command with the environment flag if provided:
-
-```bash
-npm run scr -- SCR-201
-npm run scr -- --env sit SCR-201
-```
+4. **Run the Test**: You MUST use your `run_command` tool to execute the test immediately after writing it. This is what actually forces Cypress to capture the images!
+   - Use: `npx cypress run --spec "SCR-201/**/*.cy.js"`
+   - If an environment is specified: `npx cypress run --env envName=sit --spec "SCR-201/**/*.cy.js"`
 
 5. Export after success:
 
