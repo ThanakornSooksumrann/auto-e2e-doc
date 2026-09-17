@@ -63,12 +63,16 @@ Examples:
 Use this only when the user wants real UI evidence.
 
 1. **Dynamic Selectors**: You are NOT restricted to specific UI libraries. Look at the actual DOM or the source code you found in the `frontendSourcePath` to write your Cypress commands (e.g. `cy.get('button.primary')` or `cy.contains('Save')`).
-2. **Required Custom Commands**: You MUST structure every test case with these commands for the document generator to work:
+2. **Golden Example**: You MUST read `<skill-root>/examples/golden-flow.cy.js` using `view_file` to see exactly how a perfect test is structured before generating your first test.
+3. **Writing Style**:
+   - Keep the test readable as instructions for a person: use Thai user-facing actions such as “กด เพิ่มข้อมูล” and “กด บันทึก” in your `cy.step` text. Do not put selector jargon in the step text.
+   - Use one representative value for a dropdown or lookup (do not test every option if they just need a flow document).
+4. **Required Custom Commands**: You MUST structure every test case with these commands for the document generator to work:
    - `cy.tc(id, title, objective)`: Call at the start of every `it()` block.
    - `cy.step(action, expected)`: Call before interacting with the UI. The action text will appear in the document.
    - `cy.capture(name)`: Call after the UI is stable to take a screenshot for the current step.
    - `cy.note(text)`: (Optional) Call to record an actual observation (e.g. "Found 5 items").
-3. **Evidence**: Do not create or modify data unless explicitly authorized. Assert API responses on saves; do not rely purely on UI rendering.
+5. **Evidence**: Do not create or modify data unless explicitly authorized. Assert API responses on saves; do not rely purely on UI rendering.
 4. **Run the Test**: You MUST use your `run_command` tool to execute the test immediately after writing it. This is what actually forces Cypress to capture the images!
    - Use: `npx cypress run --spec "SCR-201/**/*.cy.js"`
    - If an environment is specified: `npx cypress run --env envName=sit --spec "SCR-201/**/*.cy.js"`
